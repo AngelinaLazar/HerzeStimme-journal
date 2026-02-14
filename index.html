@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>HerzeStimme Jurnal</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8c8dc; /* roz pastel */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        background-color: #fff0f5;
+        padding: 30px;
+        border-radius: 20px;
+        width: 500px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        text-align: center;
+        color: #c71585;
+    }
+
+    .date {
+        text-align: center;
+        margin-bottom: 15px;
+        font-weight: bold;
+        color: #8b005d;
+    }
+
+    textarea {
+        width: 100%;
+        height: 150px;
+        border-radius: 10px;
+        border: 1px solid #e6a8c9;
+        padding: 10px;
+        resize: none;
+        font-size: 14px;
+    }
+
+    button {
+        margin-top: 15px;
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background-color: #ff99cc;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #ff66b2;
+    }
+
+    .history {
+        margin-top: 20px;
+        max-height: 150px;
+        overflow-y: auto;
+        background: #ffe4ec;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .entry {
+        margin-bottom: 10px;
+        font-size: 14px;
+        border-bottom: 1px solid #e6a8c9;
+        padding-bottom: 5px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HerzeStimme Jurnal</h1>
+    <div class="date" id="currentDate"></div>
+
+    <textarea id="journalEntry" placeholder="Schreibe hier deine Gedanken..."></textarea>
+
+    <button onclick="saveEntry()">Speichern und zum Verlauf</button>
+
+    <div class="history" id="history"></div>
+</div>
+
+<script>
+function formatDate(date) {
+    return date.toLocaleDateString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    });
+}
+
+document.getElementById("currentDate").innerText = 
+    "Datum: " + formatDate(new Date());
+
+function saveEntry() {
+    const entryText = document.getElementById("journalEntry").value;
+    if (entryText.trim() === "") return;
+
+    const date = formatDate(new Date());
+    const entry = { date: date, text: entryText };
+
+    let entries = JSON.parse(localStorage.getItem("herzestimmeEntries")) || [];
+    entries.push(entry);
+
+    localStorage.setItem("herzestimmeEntries", JSON.stringify(entries));
+
+    document.getElementById("journalEntry").value = "";
+    loadEntries();
+}
+
+function loadEntries() {
+    const historyDiv = document.getElementById("history");
+    historyDiv.innerHTML = "";
+
+    let entries = JSON.parse(localStorage.getItem("herzestimmeEntries")) || [];
+
+    entries.forEach(entry => {
+        const div = document.createElement("div");
+        div.classList.add("entry");
+        div.innerHTML = "<strong>" + entry.date + "</strong><br>" + entry.text;
+        historyDiv.appendChild(div);
+    });
+}
+
+loadEntries();
+</script>
+
+</body>
+</html>
