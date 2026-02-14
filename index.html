@@ -2,106 +2,108 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HerzStimme Jurnal</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#f8c8dc">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f8c8dc;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-    }
+body{
+    font-family: Arial,sans-serif;
+    background:#f8c8dc;
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+.container{
+    background:#fff0f5;
+    padding:30px;
+    border-radius:20px;
+    width:500px;
+    max-width:95%;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
+h1{
+    text-align:center;
+    color:#c71585;
+    margin-bottom:8px;
+}
+.message{
+    text-align:center;
+    color:#8b005d;
+    margin-top:0;
+    margin-bottom:15px;
+    line-height:1.5;
+}
+.date{
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:15px;
+    color:#8b005d;
+}
+textarea{
+    width:100%;
+    height:150px;
+    border-radius:10px;
+    border:1px solid #e6a8c9;
+    padding:10px;
+    resize:none;
+    font-size:14px;
+    box-sizing:border-box;
+}
+input[type=file]{
+    margin-top:10px;
+    width:100%;
+}
+.btn{
+    margin-top:12px;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#ff99cc;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+.btn:hover{ background:#ff66b2; }
 
-    .container {
-        background-color: #fff0f5;
-        padding: 30px;
-        border-radius: 20px;
-        width: 500px;
-        max-width: 90%;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    h1 {
-        text-align: center;
-        color: #c71585;
-        margin-top: 0;
-    }
-
-    .date {
-        text-align: center;
-        margin-bottom: 15px;
-        font-weight: bold;
-        color: #8b005d;
-    }
-
-    textarea {
-        width: 100%;
-        height: 150px;
-        border-radius: 10px;
-        border: 1px solid #e6a8c9;
-        padding: 10px;
-        resize: none;
-        font-size: 14px;
-        box-sizing: border-box;
-    }
-
-    input[type="file"] {
-        margin-top: 12px;
-        width: 100%;
-    }
-
-    button {
-        margin-top: 15px;
-        width: 100%;
-        padding: 10px;
-        border-radius: 10px;
-        border: none;
-        background-color: #ff99cc;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #ff66b2;
-    }
-
-    .history {
-        margin-top: 20px;
-        max-height: 200px;
-        overflow-y: auto;
-        background: #ffe4ec;
-        padding: 10px;
-        border-radius: 10px;
-    }
-
-    .entry {
-        margin-bottom: 10px;
-        font-size: 14px;
-        border-bottom: 1px solid #e6a8c9;
-        padding-bottom: 8px;
-    }
-
-    .entry img {
-        display: block;
-        margin-top: 8px;
-        max-width: 100%;
-        border-radius: 10px;
-    }
+#historyPage{
+    display:none;
+}
+.back{
+    font-size:26px;
+    cursor:pointer;
+    color:#c71585;
+    margin-bottom:15px;
+}
+.entry{
+    background:#ffe4ec;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+.entry img{
+    width:100%;
+    margin-top:10px;
+    border-radius:8px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- PAGINA PRINCIPALA -->
+<div class="container" id="mainPage">
     <h1>HerzStimme Jurnal</h1>
+
+    <p class="message">
+        Hier darf alles sein.<br>
+        Keine Maske. Kein Druck. Nur du und deine Wahrheit.
+    </p>
 
     <div class="date" id="currentDate"></div>
 
@@ -109,9 +111,15 @@
 
     <input type="file" id="photoUpload" accept="image/*">
 
-    <button onclick="saveEntry()">Speichern und zum Verlauf</button>
+    <button class="btn" onclick="saveEntry()">Speichern</button>
+    <button class="btn" onclick="openHistory()">Verlauf ansehen</button>
+</div>
 
-    <div class="history" id="history"></div>
+<!-- PAGINA ISTORIC -->
+<div class="container" id="historyPage">
+    <div class="back" onclick="backToMain()">←</div>
+    <h1>Verlauf</h1>
+    <div id="history"></div>
 </div>
 
 <script>
@@ -119,77 +127,79 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
 }
 
-function formatDate(date) {
-    return date.toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-    });
+function formatDate(d){
+    return d.toLocaleDateString("de-DE");
 }
 
 document.getElementById("currentDate").innerText =
-    "Datum: " + formatDate(new Date());
+"Datum: " + formatDate(new Date());
 
-function saveEntry() {
-    const entryText = document.getElementById("journalEntry").value.trim();
-    const photoInput = document.getElementById("photoUpload");
-    const file = photoInput.files[0];
+function saveEntry(){
+    const text=document.getElementById("journalEntry").value.trim();
+    if(!text && !document.getElementById("photoUpload").files[0]) return;
 
-    if (entryText === "" && !file) return;
+    const file=document.getElementById("photoUpload").files[0];
 
-    const date = formatDate(new Date());
-
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            saveToStorage(date, entryText, e.target.result);
-        };
+    if(file){
+        const reader=new FileReader();
+        reader.onload=function(e){
+            store(text,e.target.result);
+        }
         reader.readAsDataURL(file);
-    } else {
-        saveToStorage(date, entryText, null);
+    }else{
+        store(text,null);
     }
 }
 
-function saveToStorage(date, text, image) {
-    const entry = { date: date, text: text, image: image };
+function store(text,img){
+    let entries=JSON.parse(localStorage.getItem("herzEntries"))||[];
 
-    let entries = JSON.parse(localStorage.getItem("herzstimmeEntries")) || [];
-    entries.push(entry);
+    entries.unshift({
+        date:formatDate(new Date()),
+        text:text,
+        image:img
+    });
 
-    localStorage.setItem("herzstimmeEntries", JSON.stringify(entries));
+    localStorage.setItem("herzEntries",JSON.stringify(entries));
 
-    document.getElementById("journalEntry").value = "";
-    document.getElementById("photoUpload").value = "";
-
-    loadEntries();
+    document.getElementById("journalEntry").value="";
+    document.getElementById("photoUpload").value="";
 }
 
-function loadEntries() {
-    const historyDiv = document.getElementById("history");
-    historyDiv.innerHTML = "";
+function openHistory(){
+    loadHistory();
+    document.getElementById("mainPage").style.display="none";
+    document.getElementById("historyPage").style.display="block";
+    window.scrollTo(0,0);
+}
 
-    let entries = JSON.parse(localStorage.getItem("herzstimmeEntries")) || [];
+function backToMain(){
+    document.getElementById("historyPage").style.display="none";
+    document.getElementById("mainPage").style.display="block";
+    window.scrollTo(0,0);
+}
 
-    entries.forEach(entry => {
-        const div = document.createElement("div");
-        div.classList.add("entry");
+function loadHistory(){
+    const box=document.getElementById("history");
+    box.innerHTML="";
 
-        let html = "<strong>" + entry.date + "</strong><br>";
+    let entries=JSON.parse(localStorage.getItem("herzEntries"))||[];
 
-        if (entry.text) {
-            html += entry.text.replace(/\n/g, "<br>");
+    entries.forEach(e=>{
+        const div=document.createElement("div");
+        div.className="entry";
+
+        div.innerHTML="<strong>"+e.date+"</strong><br><br>"+(e.text || "");
+
+        if(e.image){
+            const img=document.createElement("img");
+            img.src=e.image;
+            div.appendChild(img);
         }
 
-        if (entry.image) {
-            html += '<img src="' + entry.image + '" alt="Foto">';
-        }
-
-        div.innerHTML = html;
-        historyDiv.appendChild(div);
+        box.appendChild(div);
     });
 }
-
-loadEntries();
 </script>
 
 </body>
