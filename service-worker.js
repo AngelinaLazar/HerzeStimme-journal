@@ -1,4 +1,4 @@
-const CACHE_NAME = "herzestimme-cache-v1";
+const CACHE_NAME = "herzstimme-cache-v1";
 const urlsToCache = [
   "index.html",
   "manifest.json"
