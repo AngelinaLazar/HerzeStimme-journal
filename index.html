@@ -15,7 +15,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         margin: 0;
     }
 
@@ -24,12 +24,14 @@
         padding: 30px;
         border-radius: 20px;
         width: 500px;
+        max-width: 90%;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
 
     h1 {
         text-align: center;
         color: #c71585;
+        margin-top: 0;
     }
 
     .date {
@@ -47,6 +49,12 @@
         padding: 10px;
         resize: none;
         font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    input[type="file"] {
+        margin-top: 12px;
+        width: 100%;
     }
 
     button {
@@ -67,7 +75,7 @@
 
     .history {
         margin-top: 20px;
-        max-height: 150px;
+        max-height: 200px;
         overflow-y: auto;
         background: #ffe4ec;
         padding: 10px;
@@ -78,7 +86,14 @@
         margin-bottom: 10px;
         font-size: 14px;
         border-bottom: 1px solid #e6a8c9;
-        padding-bottom: 5px;
+        padding-bottom: 8px;
+    }
+
+    .entry img {
+        display: block;
+        margin-top: 8px;
+        max-width: 100%;
+        border-radius: 10px;
     }
 </style>
 </head>
@@ -87,9 +102,12 @@
 
 <div class="container">
     <h1>HerzeStimme Jurnal</h1>
+
     <div class="date" id="currentDate"></div>
 
     <textarea id="journalEntry" placeholder="Schreibe hier deine Gedanken..."></textarea>
+
+    <input type="file" id="photoUpload" accept="image/*">
 
     <button onclick="saveEntry()">Speichern und zum Verlauf</button>
 
@@ -97,6 +115,10 @@
 </div>
 
 <script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
+
 function formatDate(date) {
     return date.toLocaleDateString("de-DE", {
         day: "2-digit",
@@ -109,11 +131,27 @@ document.getElementById("currentDate").innerText =
     "Datum: " + formatDate(new Date());
 
 function saveEntry() {
-    const entryText = document.getElementById("journalEntry").value;
-    if (entryText.trim() === "") return;
+    const entryText = document.getElementById("journalEntry").value.trim();
+    const photoInput = document.getElementById("photoUpload");
+    const file = photoInput.files[0];
+
+    if (entryText === "" && !file) return;
 
     const date = formatDate(new Date());
-    const entry = { date: date, text: entryText };
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveToStorage(date, entryText, e.target.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        saveToStorage(date, entryText, null);
+    }
+}
+
+function saveToStorage(date, text, image) {
+    const entry = { date: date, text: text, image: image };
 
     let entries = JSON.parse(localStorage.getItem("herzestimmeEntries")) || [];
     entries.push(entry);
@@ -121,6 +159,8 @@ function saveEntry() {
     localStorage.setItem("herzestimmeEntries", JSON.stringify(entries));
 
     document.getElementById("journalEntry").value = "";
+    document.getElementById("photoUpload").value = "";
+
     loadEntries();
 }
 
@@ -133,18 +173,23 @@ function loadEntries() {
     entries.forEach(entry => {
         const div = document.createElement("div");
         div.classList.add("entry");
-        div.innerHTML = "<strong>" + entry.date + "</strong><br>" + entry.text;
+
+        let html = "<strong>" + entry.date + "</strong><br>";
+
+        if (entry.text) {
+            html += entry.text.replace(/\n/g, "<br>");
+        }
+
+        if (entry.image) {
+            html += '<img src="' + entry.image + '" alt="Foto">';
+        }
+
+        div.innerHTML = html;
         historyDiv.appendChild(div);
     });
 }
 
 loadEntries();
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-}
 </script>
 
 </body>
