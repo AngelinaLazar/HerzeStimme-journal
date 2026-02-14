@@ -3,10 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <title>HerzeStimme Jurnal</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f8c8dc">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #f8c8dc; /* roz pastel */
+        background-color: #f8c8dc;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -77,6 +82,7 @@
     }
 </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -99,7 +105,7 @@ function formatDate(date) {
     });
 }
 
-document.getElementById("currentDate").innerText = 
+document.getElementById("currentDate").innerText =
     "Datum: " + formatDate(new Date());
 
 function saveEntry() {
@@ -133,6 +139,12 @@ function loadEntries() {
 }
 
 loadEntries();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+}
 </script>
 
 </body>
